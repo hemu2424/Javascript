@@ -1,0 +1,325 @@
+/* ============================================================
+   Student Management System — basic clean UI
+   Palette: background #F1F3F8, card #FFFFFF, accent #3E5AC9,
+            danger #D64550, text #232939, muted #6B7280
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #F1F3F8;
+  color: #232939;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 950px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+/* -------------------- Header -------------------- */
+
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.header h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #232939;
+}
+
+.subtitle {
+  margin: 0;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+/* -------------------- Card -------------------- */
+
+.card {
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(35, 41, 57, 0.06), 0 4px 14px rgba(35, 41, 57, 0.05);
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* -------------------- Form -------------------- */
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6B7280;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #DADFE8;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #FAFBFD;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3E5AC9;
+  background: #FFFFFF;
+}
+
+.error {
+  color: #D64550;
+  font-size: 12px;
+  min-height: 14px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* -------------------- Buttons -------------------- */
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: #3E5AC9;
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #33499F;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  border-color: #DADFE8;
+  color: #232939;
+}
+.btn-secondary:hover {
+  background: #F1F3F8;
+}
+
+.btn-danger {
+  background: #FEECEE;
+  color: #D64550;
+}
+.btn-danger:hover {
+  background: #FBD8DC;
+}
+
+.btn-edit {
+  background: #EAF0FF;
+  color: #3E5AC9;
+}
+.btn-edit:hover {
+  background: #D6E1FE;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  margin-right: 6px;
+}
+
+/* -------------------- Toolbar -------------------- */
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar input,
+.toolbar select {
+  padding: 10px 12px;
+  border: 1px solid #DADFE8;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #FAFBFD;
+}
+
+.toolbar input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.toolbar input:focus,
+.toolbar select:focus {
+  outline: none;
+  border-color: #3E5AC9;
+  background: #FFFFFF;
+}
+
+/* -------------------- Table -------------------- */
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6B7280;
+  padding: 10px 12px;
+  border-bottom: 2px solid #EEF1F6;
+}
+
+.student-table td {
+  padding: 12px;
+  border-bottom: 1px solid #EEF1F6;
+  font-size: 14px;
+}
+
+.student-table tr:hover td {
+  background: #FAFBFD;
+}
+
+.grade-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #EAF0FF;
+  color: #3E5AC9;
+}
+
+.grade-badge.none {
+  background: #EEF1F6;
+  color: #6B7280;
+}
+
+.empty-msg {
+  text-align: center;
+  color: #6B7280;
+  padding: 30px 0 10px;
+  margin: 0;
+}
+
+/* -------------------- Pagination -------------------- */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #DADFE8;
+  background: #FFFFFF;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #3E5AC9;
+  color: #3E5AC9;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-btn.active {
+  background: #3E5AC9;
+  border-color: #3E5AC9;
+  color: #fff;
+}
+
+/* -------------------- Toast -------------------- */
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #232939;
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.error {
+  background: #D64550;
+}
+
+/* -------------------- Responsive -------------------- */
+
+@media (max-width: 640px) {
+  .student-table {
+    display: block;
+    overflow-x: auto;
+  }
+  .form-row {
+    flex-direction: column;
+  }
+}
