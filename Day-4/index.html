@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">JavaScript CRUD Project</p>
+                <h1>Product Manager Dashboard</h1>
+                <p>Manage your inventory, filter by category or price, and sort products instantly.</p>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <section class="panel form-panel">
+                <h2 id="formTitle">Add Product</h2>
+                <form id="productForm">
+                    <label>
+                        Name
+                        <input type="text" id="name" placeholder="Enter product name" required>
+                    </label>
+
+                    <label>
+                        Category
+                        <input type="text" id="category" placeholder="e.g. Mobile" required>
+                    </label>
+
+                    <label>
+                        Brand
+                        <input type="text" id="brand" placeholder="e.g. Apple" required>
+                    </label>
+
+                    <div class="grid-2">
+                        <label>
+                            Price
+                            <input type="number" id="price" min="0" step="1" required>
+                        </label>
+                        <label>
+                            Stock
+                            <input type="number" id="stock" min="0" step="1" required>
+                        </label>
+                    </div>
+
+                    <label>
+                        Rating
+                        <input type="number" id="rating" min="0" max="5" step="0.1" required>
+                    </label>
+
+                    <div class="button-row">
+                        <button type="submit" id="submitBtn">Add Product</button>
+                        <button type="button" id="cancelEditBtn" class="secondary-btn hidden">Cancel</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="panel products-panel">
+                <div class="toolbar">
+                    <div>
+                        <h2>Products</h2>
+                        <p id="resultsCount">0 products shown</p>
+                    </div>
+
+                    <div class="toolbar-controls">
+                        <label>
+                            Sort by
+                            <select id="sortBy">
+                                <option value="">Default</option>
+                                <option value="price-low-high">Price: Low to High</option>
+                                <option value="price-high-low">Price: High to Low</option>
+                                <option value="name-a-z">Name: A to Z</option>
+                                <option value="name-z-a">Name: Z to A</option>
+                                <option value="rating-high-low">Rating: High to Low</option>
+                            </select>
+                        </label>
+
+                        <button type="button" id="resetFilters" class="secondary-btn">Reset Filters</button>
+                    </div>
+                </div>
+
+                <div class="filters-grid">
+                    <label>
+                        Category
+                        <select id="categoryFilter">
+                            <option value="all">All</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Brand
+                        <select id="brandFilter">
+                            <option value="all">All</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Stock
+                        <select id="stockFilter">
+                            <option value="all">All</option>
+                            <option value="instock">In Stock</option>
+                            <option value="0">Out of Stock</option>
+                            <option value="5">5 units</option>
+                            <option value="10">10 units</option>
+                            <option value="15">15 units</option>
+                            <option value="20">20 units</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Min Price
+                        <input type="number" id="minPrice" min="0" step="1" placeholder="0">
+                    </label>
+
+                    <label>
+                        Max Price
+                        <input type="number" id="maxPrice" min="0" step="1" placeholder="No limit">
+                    </label>
+                </div>
+
+                <div id="productList" class="product-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
