@@ -1,8 +1,5 @@
 "use strict";
 
-// ================================
-// Global State
-// ================================
 
 const state = {
     products: [],
@@ -10,9 +7,7 @@ const state = {
     loading: false,
     error: null
 };
-// ================================
-// DOM Elements
-// ================================
+
 
 const dom = {
     searchInput: null,
@@ -22,9 +17,6 @@ const dom = {
     error: null
 };
 
-// ================================
-// API
-// ================================
 
 const API_URL = "https://fakestoreapi.com/products";
 
@@ -32,9 +24,6 @@ const API_URL = "https://fakestoreapi.com/products";
 
 
 
-// ================================
-// Loading State
-// ================================
 
 function showLoading() {
 
@@ -68,9 +57,7 @@ function showError(message) {
 
 }
 
-// ================================
-// Product State
-// ================================
+
 
 function saveProducts(products) {
 
@@ -80,9 +67,7 @@ function saveProducts(products) {
 
 }
 
-// ================================
-// Request Helper
-// ================================
+
 
 function request(url, onSuccess, onError) {
 
@@ -120,9 +105,7 @@ function request(url, onSuccess, onError) {
 
 }
 
-// ================================
-// Success Callback
-// ================================
+
 
 function handleProductsSuccess(products) {
 
@@ -133,9 +116,7 @@ function handleProductsSuccess(products) {
 }
 
 
-// ================================
-// Error Callback
-// ================================
+
 
 function handleProductsError(message) {
 
@@ -143,9 +124,7 @@ function handleProductsError(message) {
 
 }
 
-// ================================
-// Fetch Products
-// ================================
+
 
 function fetchProducts() {
 
@@ -157,9 +136,7 @@ function fetchProducts() {
 
 }
 
-// ================================
-// Product Card
-// ================================
+
 
 function createProductCard(product) {
 
@@ -177,9 +154,6 @@ function createProductCard(product) {
 
 }
 
-// ================================
-// Render Products
-// ================================
 
 function renderProducts(products) {
 
@@ -199,9 +173,7 @@ function renderProducts(products) {
     dom.productContainer.innerHTML = html;
 
 }
-// ================================
-// Search Products
-// ================================
+
 
 function searchProducts(searchText) {
 
@@ -225,9 +197,7 @@ function searchProducts(searchText) {
 
 }
 
-// ================================
-// DOM Initialization
-// ================================
+
 
 function initializeDOM() {
 
@@ -239,9 +209,7 @@ function initializeDOM() {
 
 }
 
-// ================================
-// Event Listeners
-// ================================
+
 
 function addEventListeners() {
 
@@ -267,9 +235,7 @@ function addEventListeners() {
 
 }
 
-// ================================
-// Initialize App
-// ================================
+
 
 function initializeApp() {
 

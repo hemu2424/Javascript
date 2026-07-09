@@ -10,9 +10,7 @@ const state = {
     error: null
 };
 
-// =========================================
-// Fetch Coordinates
-// =========================================
+
 
 async function fetchCoordinates(city) {
 
@@ -59,9 +57,7 @@ async function fetchCoordinates(city) {
 
 }
 
-// =========================================
-// Fetch Weather
-// =========================================
+
 
 async function fetchWeather(latitude, longitude) {
 
@@ -98,9 +94,7 @@ async function fetchWeather(latitude, longitude) {
 
 }
 
-// =========================================
-// Update UI
-// =========================================
+
 
 function updateUI() {
     const cityNameEl = document.getElementById("cityName");
@@ -125,9 +119,7 @@ function updateUI() {
     }
 }
 
-// =========================================
-// Event Listeners
-// =========================================
+
 
 const searchBtn = document.getElementById("searchBtn");
 const cityInput = document.getElementById("cityInput");

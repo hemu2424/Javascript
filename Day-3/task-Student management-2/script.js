@@ -1,24 +1,16 @@
 'use strict';
 
-/* ============================================================
-   STUDENT MANAGEMENT SYSTEM — basic version
-   Plain functions + a single students array. No classes,
-   no layers — everything lives in this one file.
-   ============================================================ */
+
 
 const STORAGE_KEY = 'basic_sms_students';
 const PAGE_SIZE = 5;
 
-// ---------------------------------------------------------------
-// State
-// ---------------------------------------------------------------
+
 let students = loadStudents();
 let currentPage = 1;
 let editingId = null;
 
-// ---------------------------------------------------------------
-// DOM references
-// ---------------------------------------------------------------
+
 const form = document.getElementById('studentForm');
 const formTitle = document.getElementById('formTitle');
 const submitBtn = document.getElementById('submitBtn');
@@ -41,9 +33,7 @@ const emptyMsg = document.getElementById('emptyMsg');
 const pagination = document.getElementById('pagination');
 const toast = document.getElementById('toast');
 
-// ---------------------------------------------------------------
-// Storage helpers
-// ---------------------------------------------------------------
+
 function loadStudents() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -74,9 +64,7 @@ function seedStudents() {
   ];
 }
 
-// ---------------------------------------------------------------
-// Validation
-// ---------------------------------------------------------------
+
 function validateForm(data) {
   const errors = {};
 
@@ -91,7 +79,7 @@ function validateForm(data) {
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
     errors.email = 'Enter a valid email address.';
   } else {
-    // duplicate email check (ignore the record currently being edited)
+
     const duplicate = students.find(
       (s) => s.email.toLowerCase() === data.email.trim().toLowerCase() && s.id !== editingId
     );
@@ -125,9 +113,7 @@ function clearFieldErrors() {
   document.querySelectorAll('.error').forEach((el) => (el.textContent = ''));
 }
 
-// ---------------------------------------------------------------
-// CRUD
-// ---------------------------------------------------------------
+
 function addStudent(data) {
   students.push({ id: crypto.randomUUID(), ...data });
   saveStudents();
@@ -146,9 +132,7 @@ function deleteStudent(id) {
   saveStudents();
 }
 
-// ---------------------------------------------------------------
-// Form handling
-// ---------------------------------------------------------------
+
 form.addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -178,7 +162,7 @@ form.addEventListener('submit', (e) => {
   }
 
   resetForm();
-  currentPage = editingId ? currentPage : 1; // jump to page 1 to see a newly added student
+  currentPage = editingId ? currentPage : 1; 
   render();
 });
 
@@ -213,9 +197,7 @@ function startEdit(id) {
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ---------------------------------------------------------------
-// Search + Filter + Sort
-// ---------------------------------------------------------------
+
 function getFilteredStudents() {
   const term = searchInput.value.trim().toLowerCase();
   const course = filterCourse.value;
@@ -266,12 +248,9 @@ resetBtn.addEventListener('click', () => {
   render();
 });
 
-// ---------------------------------------------------------------
-// Pagination
-// ---------------------------------------------------------------
+
 function paginate(list) {
   const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  // Clamp current page into a valid range (handles filters shrinking the list)
   currentPage = Math.min(Math.max(1, currentPage), totalPages);
 
   const start = (currentPage - 1) * PAGE_SIZE;
@@ -315,9 +294,7 @@ function renderPagination(totalPages) {
   pagination.appendChild(nextBtn);
 }
 
-// ---------------------------------------------------------------
-// Table rendering
-// ---------------------------------------------------------------
+
 function gradeClass(grade) {
   return grade ? '' : 'none';
 }
@@ -360,9 +337,7 @@ tableBody.addEventListener('click', (e) => {
   }
 });
 
-// ---------------------------------------------------------------
-// Toast
-// ---------------------------------------------------------------
+
 let toastTimer = null;
 function showToast(message, isError = false) {
   toast.textContent = message;
@@ -372,9 +347,7 @@ function showToast(message, isError = false) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-// ---------------------------------------------------------------
-// Main render
-// ---------------------------------------------------------------
+
 function render() {
   const filtered = getFilteredStudents();
   const { pageItems, totalPages } = paginate(filtered);
@@ -390,7 +363,5 @@ function render() {
   renderPagination(totalPages);
 }
 
-// ---------------------------------------------------------------
-// Init
-// ---------------------------------------------------------------
+
 render();

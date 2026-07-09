@@ -3,13 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Project</title>
+    <title>Library Management System</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    
+<header>
+    <h1>📚 Library Management System</h1>
+</header>
 
-    <script src="script.js"></script>
+<main class="container">
+
+
+    <section class="card">
+
+        <h2>Add Book</h2>
+
+        <div class="form-grid">
+
+            <input type="number" id="bookId" placeholder="Book ID">
+
+            <input type="text" id="bookTitle" placeholder="Title">
+
+            <input type="text" id="bookAuthor" placeholder="Author">
+
+            <input type="text" id="bookISBN" placeholder="ISBN">
+
+            <input type="text" id="bookCategory" placeholder="Category">
+
+            <input type="number" id="bookCopies" placeholder="Copies">
+
+        </div>
+
+        <button id="addBookBtn">Add Book</button>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Add Member</h2>
+
+        <div class="form-grid">
+
+            <input type="number" id="memberId" placeholder="Member ID">
+
+            <input type="text" id="memberName" placeholder="Name">
+
+            <input type="email" id="memberEmail" placeholder="Email">
+
+            <input type="text" id="memberPhone" placeholder="Phone">
+
+        </div>
+
+        <button id="addMemberBtn">Add Member</button>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Borrow Book</h2>
+
+        <div class="form-grid">
+
+            <input type="number" id="borrowMemberId" placeholder="Member ID">
+
+            <input type="number" id="borrowBookId" placeholder="Book ID">
+
+        </div>
+
+        <button id="borrowBtn">Borrow</button>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Return Book</h2>
+
+        <div class="form-grid">
+
+            <input type="number" id="returnMemberId" placeholder="Member ID">
+
+            <input type="number" id="returnBookId" placeholder="Book ID">
+
+        </div>
+
+        <button id="returnBtn">Return</button>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Search Books</h2>
+
+        <div class="search-box">
+
+            <select id="searchType">
+                <option value="title">Title</option>
+                <option value="author">Author</option>
+                <option value="category">Category</option>
+            </select>
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search..."
+            >
+
+            <button id="searchBtn">
+                Search
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Books</h2>
+
+        <div id="bookList" class="list"></div>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Members</h2>
+
+        <div id="memberList" class="list"></div>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Transactions</h2>
+
+        <div id="transactionList" class="list"></div>
+
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+<script src="dom.js"></script>
+
 </body>
 </html>
