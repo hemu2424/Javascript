@@ -1,8 +1,6 @@
 "use strict";
 
-// =======================================
-// DOM Elements
-// =======================================
+
 
 const bookIdInput = document.getElementById("bookId");
 const bookTitleInput = document.getElementById("bookTitle");
@@ -36,16 +34,13 @@ const memberList = document.getElementById("memberList");
 const transactionList = document.getElementById("transactionList");
 
 
-// =======================================
-// Event Listeners
-// =======================================
+
 
 addBookBtn.addEventListener("click", handleAddBook);
 addMemberBtn.addEventListener("click", handleAddMember);
 
 
-// Remaining listeners
-// (We'll implement these in Part 3)
+
 
 borrowBtn.addEventListener("click", handleBorrowBook);
 
@@ -53,9 +48,7 @@ returnBtn.addEventListener("click", handleReturnBook);
 searchBtn.addEventListener("click", handleSearchBook);
 
 
-// =======================================
-// Helper Functions
-// =======================================
+
 
 function clearBookForm() {
 
@@ -91,9 +84,7 @@ function createParagraph(text) {
 
 }
 
-// =======================================
-// Add Book
-// =======================================
+
 
 function handleAddBook() {
 
@@ -135,12 +126,7 @@ function handleAddBook() {
     showMessage("Book Added Successfully.");
 
 }
-// =======================================
-// Add Member
-// =======================================
-// =======================================
-// Render Books
-// =======================================
+
 
 function renderBooks(books = library.displayAllBooks()) {
 
@@ -221,9 +207,7 @@ function handleAddMember() {
 
 }
 
-// =======================================
-// Render Members
-// =======================================
+
 
 function renderMembers(members = library.displayAllMembers()) {
 
@@ -264,9 +248,7 @@ function renderMembers(members = library.displayAllMembers()) {
     });
 
 }
-// =======================================
-// Borrow Book
-// =======================================
+
 
 function handleBorrowBook() {
 
