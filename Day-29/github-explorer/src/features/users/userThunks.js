@@ -1,4 +1,4 @@
-import { getUser } from "../../api/githubapi";
+import { getUser, searchUsers } from "../../api/githubApi";
 import {createAsyncThunk} from "@reduxjs/toolkit";
 
 export const fetchUser = createAsyncThunk(
@@ -20,3 +20,17 @@ export const fetchUser = createAsyncThunk(
         }
     }
 )
+
+export const searchUsersThunk = createAsyncThunk(
+  "users/searchUsers",
+  async (query, thunkAPI) => {
+    try {
+      const response = await searchUsers(query);
+      return response.data.items;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to search users"
+      );
+    }
+  }
+);

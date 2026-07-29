@@ -1,15 +1,10 @@
-import { useState } from 'react'
 import AppRoutes from './routes/AppRoutes'
 
-
-
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-   <>
-   <AppRoutes/>
-   </>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <AppRoutes />
+    </div>
   )
 }
 
