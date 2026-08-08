@@ -1,0 +1,17 @@
+Node.js Streams Practice
+
+Node.js streams are a powerful way to work with data without loading everything into memory at once. A stream can process data gradually, which makes it useful for large files, network requests, video processing, compression, and many other tasks.
+
+There are four common types of streams in Node.js: Readable, Writable, Duplex, and Transform. A Readable stream provides data that can be consumed. A Writable stream accepts data and writes it somewhere. A Duplex stream can both read and write. A Transform stream is a special type of Duplex stream that changes data as it passes through.
+
+For example, when reading a large text file, a Readable stream can divide the file into smaller chunks. Each chunk can then be processed independently. This approach reduces memory usage compared with reading the complete file with fs.readFile.
+
+Streams also use events. Important events include data, end, error, and finish. The data event is emitted when a chunk is available. The end event indicates that a Readable stream has no more data. The error event is used when something goes wrong. The finish event indicates that a Writable stream has completed writing.
+
+Node.js also provides the pipe method. The pipe method connects a Readable stream to a Writable stream. This makes it possible to transfer data efficiently with very little code.
+
+Backpressure is another important stream concept. Backpressure happens when the destination cannot process data as quickly as the source produces it. Node.js streams provide mechanisms to handle this situation and prevent memory usage from growing unnecessarily.
+
+Streams are especially useful in real applications. A file upload service can process uploaded files as streams. A logging system can continuously write logs to a file. A compression utility can read a file, transform its data using gzip, and write the compressed output to another file.
+
+Learning streams helps developers understand how Node.js handles input and output efficiently. It also provides a strong foundation for building scalable command-line tools, APIs, file-processing applications, and backend systems.

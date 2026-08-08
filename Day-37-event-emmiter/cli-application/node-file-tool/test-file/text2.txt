@@ -1,0 +1,19 @@
+Command Line File Tool
+
+A command-line application allows users to interact with a program directly from a terminal. Node.js provides several built-in features that make it easy to build small CLI applications for learning and automation.
+
+One of the most useful features is process.argv. It contains the arguments passed to the Node.js process. For example, when a user runs node app.js read file.txt, the application can inspect process.argv and determine that the command is read and the target file is file.txt.
+
+A simple CLI file tool can support commands such as help, version, list, read, copy, delete, and create. The help command explains how the application should be used. The version command displays the current application version. The read command displays the contents of a file. The list command can show files inside a directory.
+
+The Node.js fs module is commonly used for file operations. It provides synchronous and asynchronous APIs for reading, writing, copying, renaming, and deleting files. For larger files, stream-based APIs can be used instead of loading the complete file into memory.
+
+Error handling is very important in CLI applications. A user may provide a file that does not exist, use an invalid command, or forget a required argument. The application should show a clear message instead of crashing unexpectedly.
+
+A good CLI application usually separates responsibilities. The main app.js file can handle command parsing, while separate modules can contain file operations and helper functions. This makes the project easier to understand, test, and expand.
+
+Another useful feature is exit codes. A successful command can exit with code zero, while an error can use a non-zero exit code. This allows other scripts to understand whether the command completed successfully.
+
+CLI applications are excellent practice projects because they combine many Node.js concepts. They can involve modules, process arguments, the file system, streams, events, errors, asynchronous programming, and reusable functions.
+
+Building a file tool step by step is a good way to understand how Node.js works outside the browser. Once the basic version is complete, additional features such as file statistics, search, compression, and directory scanning can be added.
