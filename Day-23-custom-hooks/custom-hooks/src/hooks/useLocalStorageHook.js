@@ -9,7 +9,7 @@ function useLocalStorage(key,initialValue){
             }
             return initialValue
         }
-        catch(error){
+        catch(error){  
             console.log("erro reading localStorage",error)
             return initialValue
         }

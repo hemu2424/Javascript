@@ -1,0 +1,7 @@
+2026-08-08 10:00:01 INFO Server started
+2026-08-08 10:01:15 INFO User logged in
+2026-08-08 10:02:30 WARN High memory usage
+2026-08-08 10:03:45 ERROR Database connection failed
+2026-08-08 10:04:10 INFO Request completed
+2026-08-08 10:05:22 ERROR Request timeout
+2026-08-08 10:06:35 WARN CPU usage high
