@@ -26,3 +26,5 @@ export const LoginSchema = z.object({
     .min(8, "Password must be at least 8 characters")
    
 })
+
+export type LoginInput = z.infer<typeof LoginSchema>
