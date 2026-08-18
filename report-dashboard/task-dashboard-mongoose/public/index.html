@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+
+  <title>Task Report Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #171a21;
+      --border: #262b35;
+      --text: #e6e8eb;
+      --muted: #9aa1ac;
+      --accent: #6ea8fe;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    p.sub {
+      color: var(--muted);
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(320px, 1fr)
+      );
+
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .card h2 {
+      font-size: 14px;
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      min-width: 140px;
+    }
+
+    .stat .num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    canvas {
+      max-height: 260px;
+    }
+
+    .error {
+      color: #f77f9e;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <h1>Task Report Dashboard</h1>
+
+ 
+
+
+  <!-- Error -->
+  <div
+    id="error"
+    class="error"
+  ></div>
+
+
+  <!-- Summary -->
+  <div
+    class="stat-row"
+    id="summaryStats"
+  ></div>
+
+
+  <!-- Charts + Tables -->
+  <div class="grid">
+
+    <!-- STATUS -->
+    <div class="card">
+
+      <h2>
+        Status Breakdown
+      </h2>
+
+      <canvas
+        id="statusChart"
+      ></canvas>
+
+    </div>
+
+
+    <!-- PRIORITY -->
+    <div class="card">
+
+      <h2>
+        Priority Distribution
+      </h2>
+
+      <canvas
+        id="priorityChart"
+      ></canvas>
+
+    </div>
+
+
+    <!-- TREND -->
+    <div class="card">
+
+      <h2>
+        Weekly Trend — Created vs Completed
+      </h2>
+
+      <canvas
+        id="trendChart"
+      ></canvas>
+
+    </div>
+
+
+    <!-- COMPLETION -->
+    <div class="card">
+
+      <h2>
+        Avg Completion Time by Priority
+      </h2>
+
+      <canvas
+        id="completionChart"
+      ></canvas>
+
+    </div>
+
+
+    <!-- USERS -->
+    <div class="card">
+
+      <h2>
+        User Performance
+      </h2>
+
+      <table id="userTable">
+
+        <thead>
+
+          <tr>
+            <th>Name</th>
+            <th>Total</th>
+            <th>Completed</th>
+            <th>Rate %</th>
+          </tr>
+
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- OVERDUE -->
+    <div class="card">
+
+      <h2>
+        Overdue Tasks
+      </h2>
+
+      <table id="overdueTable">
+
+        <thead>
+
+          <tr>
+            <th>Title</th>
+            <th>Assignee</th>
+            <th>Days Overdue</th>
+          </tr>
+
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+<script>
+
+  // ==========================================
+  // API
+  // ==========================================
+
+  const API = "/api/reports";
+
+
+  // ==========================================
+  // CHART COLORS
+  // ==========================================
+
+  const chartColors = [
+    "#6ea8fe",
+    "#f77f9e",
+    "#ffd166",
+    "#06d6a0",
+    "#a78bfa"
+  ];
+
+
+  // ==========================================
+  // FETCH HELPER
+  // ==========================================
+
+  async function fetchJSON(url) {
+
+    const response = await fetch(url);
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        `Request failed: ${response.status}`
+      );
+
+    }
+
+
+    return response.json();
+
+  }
+
+
+  // ==========================================
+  // CREATE CHART
+  // ==========================================
+
+  function makeChart(
+    ctx,
+    type,
+    labels,
+    data,
+    label
+  ) {
+
+    return new Chart(ctx, {
+
+      type,
+
+      data: {
+
+        labels,
+
+        datasets: [
+
+          {
+
+            label,
+
+            data,
+
+            backgroundColor:
+              chartColors,
+
+            borderColor:
+              "#171a21",
+
+            borderWidth:
+              type === "line"
+                ? 2
+                : 1,
+
+            fill:
+              type === "line"
+                ? false
+                : true,
+
+            tension: 0.3
+
+          }
+
+        ]
+
+      },
+
+
+      options: {
+
+        plugins: {
+
+          legend: {
+
+            labels: {
+              color: "#9aa1ac"
+            }
+
+          }
+
+        },
+
+
+        scales:
+
+          type === "pie"
+
+            ? {}
+
+            : {
+
+                x: {
+
+                  ticks: {
+                    color:
+                      "#9aa1ac"
+                  },
+
+                  grid: {
+                    color:
+                      "#262b35"
+                  }
+
+                },
+
+                y: {
+
+                  ticks: {
+                    color:
+                      "#9aa1ac"
+                  },
+
+                  grid: {
+                    color:
+                      "#262b35"
+                  },
+
+                  beginAtZero: true
+
+                }
+
+              }
+
+      }
+
+    });
+
+  }
+
+
+  // ==========================================
+  // SUMMARY
+  // ==========================================
+
+  async function loadSummary() {
+
+    const data =
+      await fetchJSON(
+        `${API}/summary`
+      );
+
+
+    // New controller returns:
+    //
+    // {
+    //   totalTasks: 20,
+    //   statusBreakdown: {
+    //     todo: 5,
+    //     done: 10
+    //   },
+    //   priorityBreakdown: {
+    //     low: 5,
+    //     medium: 10,
+    //     high: 5
+    //   },
+    //   overdueCount: 3
+    // }
+
+
+    const total =
+      data.totalTasks || 0;
+
+
+    const overdue =
+      data.overdueCount || 0;
+
+
+    // Summary cards
+
+    const container =
+      document.getElementById(
+        "summaryStats"
+      );
+
+
+    container.innerHTML = `
+
+      <div class="stat">
+
+        <div class="num">
+          ${total}
+        </div>
+
+        <div class="label">
+          Total Tasks
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="num">
+          ${overdue}
+        </div>
+
+        <div class="label">
+          Overdue Tasks
+        </div>
+
+      </div>
+
+    `;
+
+
+    // ======================================
+    // STATUS CHART
+    // ======================================
+
+    const statusLabels =
+      Object.keys(
+        data.statusBreakdown
+      );
+
+
+    const statusCounts =
+      Object.values(
+        data.statusBreakdown
+      );
+
+
+    makeChart(
+
+      document.getElementById(
+        "statusChart"
+      ),
+
+      "pie",
+
+      statusLabels,
+
+      statusCounts,
+
+      "Tasks"
+
+    );
+
+
+    // ======================================
+    // PRIORITY CHART
+    // ======================================
+
+    const priorityLabels =
+      Object.keys(
+        data.priorityBreakdown
+      );
+
+
+    const priorityCounts =
+      Object.values(
+        data.priorityBreakdown
+      );
+
+
+    makeChart(
+
+      document.getElementById(
+        "priorityChart"
+      ),
+
+      "pie",
+
+      priorityLabels,
+
+      priorityCounts,
+
+      "Tasks"
+
+    );
+
+  }
+
+
+  // ==========================================
+  // WEEKLY TREND
+  // ==========================================
+
+  async function loadTrend() {
+
+    const data =
+      await fetchJSON(
+        `${API}/trend`
+      );
+
+
+    /*
+      Controller returns:
+
+      {
+        created: {
+          "2026-08-10": 5,
+          "2026-08-17": 8
+        },
+
+        completed: {
+          "2026-08-10": 3,
+          "2026-08-17": 6
+        }
+      }
+    */
+
+
+    const createdWeeks =
+      Object.keys(
+        data.created
+      );
+
+
+    const completedWeeks =
+      Object.keys(
+        data.completed
+      );
+
+
+    // Combine both arrays
+
+    const weeks =
+      [
+        ...new Set([
+          ...createdWeeks,
+          ...completedWeeks
+        ])
+      ].sort();
+
+
+    // Convert date into readable format
+
+    const labels =
+      weeks.map((week) => {
+
+        return new Date(
+          week
+        ).toLocaleDateString();
+
+      });
+
+
+    const createdData =
+      weeks.map(
+        (week) =>
+          data.created[week] || 0
+      );
+
+
+    const completedData =
+      weeks.map(
+        (week) =>
+          data.completed[week] || 0
+      );
+
+
+    const ctx =
+      document.getElementById(
+        "trendChart"
+      );
+
+
+    new Chart(ctx, {
+
+      type: "line",
+
+
+      data: {
+
+        labels,
+
+        datasets: [
+
+          {
+
+            label: "Created",
+
+            data:
+              createdData,
+
+            borderColor:
+              "#6ea8fe",
+
+            backgroundColor:
+              "transparent",
+
+            tension: 0.3
+
+          },
+
+
+          {
+
+            label: "Completed",
+
+            data:
+              completedData,
+
+            borderColor:
+              "#06d6a0",
+
+            backgroundColor:
+              "transparent",
+
+            tension: 0.3
+
+          }
+
+        ]
+
+      },
+
+
+      options: {
+
+        plugins: {
+
+          legend: {
+
+            labels: {
+              color:
+                "#9aa1ac"
+            }
+
+          }
+
+        },
+
+
+        scales: {
+
+          x: {
+
+            ticks: {
+              color:
+                "#9aa1ac"
+            },
+
+            grid: {
+              color:
+                "#262b35"
+            }
+
+          },
+
+
+          y: {
+
+            ticks: {
+              color:
+                "#9aa1ac"
+            },
+
+            grid: {
+              color:
+                "#262b35"
+            },
+
+            beginAtZero: true
+
+          }
+
+        }
+
+      }
+
+    });
+
+  }
+
+
+  // ==========================================
+  // COMPLETION TIME
+  // ==========================================
+
+  async function loadCompletionTime() {
+
+    const data =
+      await fetchJSON(
+        `${API}/completion-time`
+      );
+
+
+    /*
+      Controller returns:
+
+      [
+        {
+          priority: "high",
+          avgHours: 12.5,
+          count: 10
+        },
+
+        {
+          priority: "low",
+          avgHours: 20.3,
+          count: 5
+        }
+      ]
+    */
+
+
+    const labels =
+      data.map(
+        item => item.priority
+      );
+
+
+    const values =
+      data.map(
+        item => item.avgHours
+      );
+
+
+    makeChart(
+
+      document.getElementById(
+        "completionChart"
+      ),
+
+      "bar",
+
+      labels,
+
+      values,
+
+      "Average Hours"
+
+    );
+
+  }
+
+
+  // ==========================================
+  // USER PERFORMANCE
+  // ==========================================
+
+  async function loadUsers() {
+
+    const data =
+      await fetchJSON(
+        `${API}/users`
+      );
+
+
+    const tbody =
+      document.querySelector(
+        "#userTable tbody"
+      );
+
+
+    tbody.innerHTML =
+      data.map(user => `
+
+        <tr>
+
+          <td>
+            ${user.name}
+          </td>
+
+          <td>
+            ${user.total}
+          </td>
+
+          <td>
+            ${user.completed}
+          </td>
+
+          <td>
+            ${user.completionRate}%
+          </td>
+
+        </tr>
+
+      `).join("");
+
+  }
+
+
+  // ==========================================
+  // OVERDUE TASKS
+  // ==========================================
+
+  async function loadOverdue() {
+
+    const data =
+      await fetchJSON(
+        `${API}/overdue`
+      );
+
+
+    const tbody =
+      document.querySelector(
+        "#overdueTable tbody"
+      );
+
+
+    tbody.innerHTML =
+      data
+        .slice(0, 10)
+        .map(task => `
+
+          <tr>
+
+            <td>
+              ${task.title}
+            </td>
+
+            <td>
+              ${task.assignee || "N/A"}
+            </td>
+
+            <td>
+              ${task.daysOverdue}
+            </td>
+
+          </tr>
+
+        `)
+        .join("");
+
+  }
+
+
+  // ==========================================
+  // INITIALIZE DASHBOARD
+  // ==========================================
+
+  async function init() {
+
+    try {
+
+      await Promise.all([
+
+        loadSummary(),
+
+        loadTrend(),
+
+        loadCompletionTime(),
+
+        loadUsers(),
+
+        loadOverdue()
+
+      ]);
+
+    } catch (error) {
+
+      console.error(error);
+
+
+      document.getElementById(
+        "error"
+      ).textContent =
+        "Failed to load dashboard data.";
+
+    }
+
+  }
+
+
+  init();
+
+</script>
+
+</body>
+
+</html>
