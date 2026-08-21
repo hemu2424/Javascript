@@ -1,31 +1,44 @@
+const mongoose = require("mongoose");
 const Task = require("../models/Task");
 
+
+// ======================================================
+// 1. STATUS BREAKDOWN
+// GET /api/reports/status
+// GET /api/reports/status?projectId=PROJECT_ID
+// ======================================================
 
 exports.getStatusBreakdown = async (req, res) => {
   try {
     const { projectId } = req.query;
 
-    const filter = {};
+    const pipeline = [];
 
+    // Optional project filter
     if (projectId) {
-      filter.projectId = projectId;
+      pipeline.push({
+        $match: {
+          projectId: new mongoose.Types.ObjectId(projectId)
+        }
+      });
     }
 
-    const tasks = await Task.find(filter)
-      .select("status");
-
-    const result = {
-      todo: 0,
-      in_progress: 0,
-      done: 0,
-      blocked: 0
-    };
-
-    tasks.forEach((task) => {
-      if (result[task.status] !== undefined) {
-        result[task.status]++;
+    // Group tasks according to status
+    pipeline.push({
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 }
       }
     });
+
+    // Sort highest count first
+    pipeline.push({
+      $sort: {
+        count: -1
+      }
+    });
+
+    const result = await Task.aggregate(pipeline);
 
     res.json(result);
 
@@ -39,83 +52,99 @@ exports.getStatusBreakdown = async (req, res) => {
 };
 
 
-
+// ======================================================
+// 2. USER PERFORMANCE
+// GET /api/reports/users
+// ======================================================
 
 exports.getUserPerformance = async (req, res) => {
   try {
 
-    const tasks = await Task.find()
-      .select("status assignedTo")
-      .populate({
-        path: "assignedTo",
-        select: "name"
-      });
+    const result = await Task.aggregate([
 
+      // Group tasks by assigned user
+      {
+        $group: {
+          _id: "$assignedTo",
 
-    const users = {};
+          total: {
+            $sum: 1
+          },
 
+          completed: {
+            $sum: {
+              $cond: [
+                { $eq: ["$status", "done"] },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
 
-    tasks.forEach((task) => {
+      // Calculate completion percentage
+      {
+        $addFields: {
+          completionRate: {
+            $multiply: [
+              {
+                $divide: [
+                  "$completed",
+                  "$total"
+                ]
+              },
+              100
+            ]
+          }
+        }
+      },
 
-      // Task has no assigned user
-      if (!task.assignedTo) {
-        return;
+      // Get user information
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+
+      // Convert user array into object
+      {
+        $unwind: "$user"
+      },
+
+      // Select required fields
+      {
+        $project: {
+          _id: 0,
+
+          userId: "$user._id",
+
+          name: "$user.name",
+
+          total: 1,
+
+          completed: 1,
+
+          completionRate: {
+            $round: [
+              "$completionRate",
+              1
+            ]
+          }
+        }
+      },
+
+      // Highest completion rate first
+      {
+        $sort: {
+          completionRate: -1
+        }
       }
 
-
-      const userId =
-        task.assignedTo._id.toString();
-
-
-      if (!users[userId]) {
-
-        users[userId] = {
-          userId: task.assignedTo._id,
-          name: task.assignedTo.name,
-          total: 0,
-          completed: 0
-        };
-
-      }
-
-
-      users[userId].total++;
-
-
-      if (task.status === "done") {
-        users[userId].completed++;
-      }
-
-    });
-
-
-    const result =
-      Object.values(users).map((user) => {
-
-        const completionRate =
-          user.total > 0
-            ? (user.completed / user.total) * 100
-            : 0;
-
-
-        return {
-          userId: user.userId,
-          name: user.name,
-          total: user.total,
-          completed: user.completed,
-          completionRate:
-            Number(completionRate.toFixed(1))
-        };
-
-      });
-
-
-    result.sort(
-      (a, b) =>
-        b.completionRate -
-        a.completionRate
-    );
-
+    ]);
 
     res.json(result);
 
@@ -129,161 +158,194 @@ exports.getUserPerformance = async (req, res) => {
     res.status(500).json({
       error: error.message
     });
-
   }
 };
 
 
+// ======================================================
+// 3. OVERDUE TASKS
+// GET /api/reports/overdue
+// ======================================================
+
 exports.getOverdueTasks = async (req, res) => {
   try {
 
-    const now = new Date();
+    const result = await Task.aggregate([
 
+      // Find incomplete tasks whose due date has passed
+      {
+        $match: {
+          status: {
+            $ne: "done"
+          },
 
-    const tasks = await Task.find({
-
-      status: {
-        $ne: "done"
+          dueDate: {
+            $exists: true,
+            $ne: null,
+            $lt: new Date()
+          }
+        }
       },
 
-      dueDate: {
-        $exists: true,
-        $ne: null,
-        $lt: now
+      // Get user information
+      {
+        $lookup: {
+          from: "users",
+          localField: "assignedTo",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+
+      // Calculate days overdue
+      {
+        $project: {
+
+          title: 1,
+
+          status: 1,
+
+          dueDate: 1,
+
+          assignee: {
+            $ifNull: [
+              "$user.name",
+              "Unassigned"
+            ]
+          },
+
+          daysOverdue: {
+            $dateDiff: {
+              startDate: "$dueDate",
+              endDate: "$$NOW",
+              unit: "day"
+            }
+          }
+        }
+      },
+
+      // Most overdue first
+      {
+        $sort: {
+          daysOverdue: -1
+        }
       }
 
-    })
-      .select(
-        "title status dueDate assignedTo"
-      )
-      .populate({
-        path: "assignedTo",
-        select: "name"
-      });
-
-
-    const result =
-      tasks.map((task) => {
-
-        let daysOverdue = 0;
-
-
-        if (task.dueDate) {
-
-          const difference =
-            Date.now() -
-            task.dueDate.getTime();
-
-
-          daysOverdue =
-            Math.floor(
-              difference /
-              (1000 * 60 * 60 * 24)
-            );
-
-        }
-
-
-        return {
-
-          title: task.title,
-
-          status: task.status,
-
-          dueDate: task.dueDate,
-
-          assignee:
-            task.assignedTo
-              ? task.assignedTo.name
-              : "Unassigned",
-
-          daysOverdue
-
-        };
-
-      });
-
-
-    result.sort(
-      (a, b) =>
-        b.daysOverdue -
-        a.daysOverdue
-    );
-
+    ]);
 
     res.json(result);
 
   } catch (error) {
 
     console.error(
-      "OVERDUE TASK ERROR:",
+      "OVERDUE ERROR:",
       error
     );
 
     res.status(500).json({
       error: error.message
     });
-
   }
 };
 
 
-// ==========================================
-// 4. TREND
-// ==========================================
+// ======================================================
+// 4. WEEKLY TREND
+// GET /api/reports/trend
+// ======================================================
 
 exports.getTrend = async (req, res) => {
   try {
 
-    const tasks = await Task.find()
-      .select(
-        "createdAt completedAt"
-      );
+    const result = await Task.aggregate([
+
+      {
+        $facet: {
+
+          // --------------------------
+          // Created tasks
+          // --------------------------
+
+          created: [
+
+            {
+              $group: {
+
+                _id: {
+                  $dateTrunc: {
+                    date: "$createdAt",
+                    unit: "week"
+                  }
+                },
+
+                count: {
+                  $sum: 1
+                }
+
+              }
+            },
+
+            {
+              $sort: {
+                _id: 1
+              }
+            }
+
+          ],
 
 
-    const created = {};
+          // --------------------------
+          // Completed tasks
+          // --------------------------
 
-    const completed = {};
+          completed: [
 
+            {
+              $match: {
+                completedAt: {
+                  $ne: null
+                }
+              }
+            },
 
-    tasks.forEach((task) => {
+            {
+              $group: {
 
-      if (task.createdAt) {
+                _id: {
+                  $dateTrunc: {
+                    date: "$completedAt",
+                    unit: "week"
+                  }
+                },
 
-        const week =
-          getWeek(task.createdAt);
+                count: {
+                  $sum: 1
+                }
 
+              }
+            },
 
-        if (!created[week]) {
-          created[week] = 0;
+            {
+              $sort: {
+                _id: 1
+              }
+            }
+
+          ]
+
         }
-
-        created[week]++;
-
       }
 
+    ]);
 
-      if (task.completedAt) {
-
-        const week =
-          getWeek(task.completedAt);
-
-
-        if (!completed[week]) {
-          completed[week] = 0;
-        }
-
-        completed[week]++;
-
-      }
-
-    });
-
-
-    res.json({
-      created,
-      completed
-    });
+    res.json(result[0]);
 
   } catch (error) {
 
@@ -295,111 +357,101 @@ exports.getTrend = async (req, res) => {
     res.status(500).json({
       error: error.message
     });
-
   }
 };
 
 
-function getWeek(date) {
-
-  const d = new Date(date);
-
-  const day = d.getDay();
-
-  const diff =
-    d.getDate() -
-    day +
-    (day === 0 ? -6 : 1);
-
-
-  const monday =
-    new Date(d);
-
-  monday.setDate(diff);
-
-
-  return monday
-    .toISOString()
-    .split("T")[0];
-
-}
-
-
-// ==========================================
-// 5. PRIORITY DISTRIBUTION
-// ==========================================
+// ======================================================
+// 5. PRIORITY DISTRIBUTION BY PROJECT
+// GET /api/reports/priority
+// ======================================================
 
 exports.getPriorityDistribution = async (req, res) => {
   try {
 
-    const tasks = await Task.find()
-      .select(
-        "projectId priority"
-      )
-      .populate({
-        path: "projectId",
-        select: "name"
-      });
+    const result = await Task.aggregate([
 
+      // First group by project + priority
+      {
+        $group: {
 
-    const projects = {};
+          _id: {
+            project: "$projectId",
+            priority: "$priority"
+          },
 
-
-    tasks.forEach((task) => {
-
-      if (!task.projectId) {
-        return;
-      }
-
-
-      const projectId =
-        task.projectId._id.toString();
-
-
-      if (!projects[projectId]) {
-
-        projects[projectId] = {
-
-          projectName:
-            task.projectId.name,
-
-          total: 0,
-
-          breakdown: {
-
-            low: 0,
-
-            medium: 0,
-
-            high: 0
-
+          count: {
+            $sum: 1
           }
 
-        };
+        }
+      },
 
+
+      // Group again by project
+      {
+        $group: {
+
+          _id: "$_id.project",
+
+          total: {
+            $sum: "$count"
+          },
+
+          breakdown: {
+            $push: {
+
+              priority: "$_id.priority",
+
+              count: "$count"
+
+            }
+          }
+
+        }
+      },
+
+
+      // Get project information
+      {
+        $lookup: {
+
+          from: "projects",
+
+          localField: "_id",
+
+          foreignField: "_id",
+
+          as: "project"
+
+        }
+      },
+
+
+      {
+        $unwind: "$project"
+      },
+
+
+      // Final response
+      {
+        $project: {
+
+          _id: 0,
+
+          projectName:
+            "$project.name",
+
+          total: 1,
+
+          breakdown: 1
+
+        }
       }
 
+    ]);
 
-      projects[projectId].total++;
-
-
-      if (
-        projects[projectId]
-          .breakdown[task.priority]
-        !== undefined
-      ) {
-
-        projects[projectId]
-          .breakdown[task.priority]++;
-
-      }
-
-    });
-
-
-    res.json(
-      Object.values(projects)
-    );
+    res.json(result);
 
   } catch (error) {
 
@@ -411,93 +463,107 @@ exports.getPriorityDistribution = async (req, res) => {
     res.status(500).json({
       error: error.message
     });
-
   }
 };
 
 
-// ==========================================
-// 6. COMPLETION TIME
-// ==========================================
+// ======================================================
+// 6. AVERAGE COMPLETION TIME
+// GET /api/reports/completion-time
+// ======================================================
 
 exports.getCompletionTime = async (req, res) => {
   try {
 
-    const tasks = await Task.find({
+    const result = await Task.aggregate([
 
-      status: "done",
+      // Only completed tasks
+      {
+        $match: {
 
-      completedAt: {
-        $ne: null
-      }
+          status: "done",
 
-    }).select(
-      "priority createdAt completedAt"
-    );
-
-
-    const priorities = {};
-
-
-    tasks.forEach((task) => {
-
-      const hours =
-        (
-          task.completedAt -
-          task.createdAt
-        ) /
-        (1000 * 60 * 60);
-
-
-      if (!priorities[task.priority]) {
-
-        priorities[task.priority] = {
-
-          totalHours: 0,
-
-          count: 0
-
-        };
-
-      }
-
-
-      priorities[task.priority]
-        .totalHours += hours;
-
-
-      priorities[task.priority]
-        .count++;
-
-    });
-
-
-    const result =
-      Object.entries(
-        priorities
-      ).map(
-        ([priority, data]) => {
-
-          return {
-
-            priority,
-
-            avgHours:
-              Number(
-                (
-                  data.totalHours /
-                  data.count
-                ).toFixed(1)
-              ),
-
-            count:
-              data.count
-
-          };
+          completedAt: {
+            $ne: null
+          }
 
         }
-      );
+      },
 
+
+      // Calculate hours taken
+      {
+        $project: {
+
+          priority: 1,
+
+          hoursToComplete: {
+
+            $divide: [
+
+              {
+                $subtract: [
+                  "$completedAt",
+                  "$createdAt"
+                ]
+              },
+
+              1000 * 60 * 60
+
+            ]
+
+          }
+
+        }
+      },
+
+
+      // Group by priority
+      {
+        $group: {
+
+          _id: "$priority",
+
+          avgHours: {
+            $avg: "$hoursToComplete"
+          },
+
+          count: {
+            $sum: 1
+          }
+
+        }
+      },
+
+
+      // Round average
+      {
+        $project: {
+
+          _id: 0,
+
+          priority: "$_id",
+
+          avgHours: {
+            $round: [
+              "$avgHours",
+              1
+            ]
+          },
+
+          count: 1
+
+        }
+      },
+
+
+      {
+        $sort: {
+          priority: 1
+        }
+      }
+
+    ]);
 
     res.json(result);
 
@@ -511,90 +577,113 @@ exports.getCompletionTime = async (req, res) => {
     res.status(500).json({
       error: error.message
     });
-
   }
 };
 
 
-// ==========================================
-// 7. SUMMARY
-// ==========================================
+// ======================================================
+// 7. DASHBOARD SUMMARY
+// GET /api/reports/summary
+// ======================================================
 
 exports.getSummary = async (req, res) => {
   try {
 
-    const tasks = await Task.find()
-      .select(
-        "status priority dueDate"
-      );
+    const result = await Task.aggregate([
+
+      {
+        $facet: {
+
+          // --------------------------
+          // Status
+          // --------------------------
+
+          statusBreakdown: [
+
+            {
+              $group: {
+
+                _id: "$status",
+
+                count: {
+                  $sum: 1
+                }
+
+              }
+            }
+
+          ],
 
 
-    const statusBreakdown = {};
+          // --------------------------
+          // Priority
+          // --------------------------
 
-    const priorityBreakdown = {};
+          priorityBreakdown: [
 
-    let overdueCount = 0;
+            {
+              $group: {
+
+                _id: "$priority",
+
+                count: {
+                  $sum: 1
+                }
+
+              }
+            }
+
+          ],
 
 
-    tasks.forEach((task) => {
+          // --------------------------
+          // Overdue
+          // --------------------------
 
-      // Status
+          overdueCount: [
 
-      if (
-        !statusBreakdown[task.status]
-      ) {
+            {
+              $match: {
 
-        statusBreakdown[task.status] = 0;
+                status: {
+                  $ne: "done"
+                },
 
+                dueDate: {
+                  $exists: true,
+                  $ne: null,
+                  $lt: new Date()
+                }
+
+              }
+            },
+
+            {
+              $count: "count"
+            }
+
+          ],
+
+
+          // --------------------------
+          // Total tasks
+          // --------------------------
+
+          totalTasks: [
+
+            {
+              $count: "count"
+            }
+
+          ]
+
+        }
       }
 
-      statusBreakdown[task.status]++;
+    ]);
 
 
-      // Priority
-
-      if (
-        !priorityBreakdown[task.priority]
-      ) {
-
-        priorityBreakdown[task.priority] = 0;
-
-      }
-
-      priorityBreakdown[task.priority]++;
-
-
-      // Overdue
-
-      if (
-
-        task.status !== "done" &&
-
-        task.dueDate &&
-
-        task.dueDate < new Date()
-
-      ) {
-
-        overdueCount++;
-
-      }
-
-    });
-
-
-    res.json({
-
-      totalTasks:
-        tasks.length,
-
-      statusBreakdown,
-
-      priorityBreakdown,
-
-      overdueCount
-
-    });
+    res.json(result[0]);
 
   } catch (error) {
 
@@ -606,6 +695,5 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({
       error: error.message
     });
-
   }
 };

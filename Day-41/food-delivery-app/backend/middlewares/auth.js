@@ -1,7 +1,7 @@
 import {Users} from "../models/Users.js";
 import jwt from "jsonwebtoken"
 
-async function protect(req,res,next){
+async function  protect(req,res,next){
 
     try{
         const token = req.cookies.token;
@@ -46,7 +46,7 @@ function allowRoles(...roles){
     return (req,res,next)=>{
         if(!roles.includes(req.user.role)){
             return res.status(403).json({
-                message:"access denied for this role"
+                message:"access denied for this role "
             })
         }
         next();

@@ -1,8 +1,14 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
-import Navabar from "@/components/Navbar";
-import { ResturantProvider } from "@/context/RestaurantContext";
+import Navbar from "@/components/Navbar";
+import { RestaurantProvider } from "@/context/RestaurantContext";
+import { MenuItemProvider } from "@/context/MenuItemContext";
+import { CartProvider } from "@/context/CartContext";
+import { OrderProvider } from "@/context/OrderContext";
+import { AdminProvider } from "@/context/AdminContext";
+import { ToastProvider } from "@/context/ToastContext";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,10 +29,22 @@ export default function RootLayout({ children }) {
   return (
       <html lang="en">
       <body>
+        <ToastProvider>
         <AuthProvider>
-          <Navabar/>
+          <CartProvider>
+            <OrderProvider>
+          <RestaurantProvider>
+            <MenuItemProvider>
+            <AdminProvider>
+          <Navbar />
           {children}
+          </AdminProvider>
+          </MenuItemProvider>
+          </RestaurantProvider>
+          </OrderProvider>
+          </CartProvider>
         </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

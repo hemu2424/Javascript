@@ -6,7 +6,7 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   phone: z.string().optional(),
   address: z.string().optional(),
-  role: z.enum(["user", "delivery", "admin"]).default("user"),
+  role: z.enum(["user", "delivery"]).default("user"),
 });
 
 const loginSchema = z.object({

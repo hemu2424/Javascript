@@ -3,7 +3,8 @@ import { allowRoles, protect } from "../middlewares/auth.js";
 import {
   createRestaurant,
   deleteRestaurant,
-  deleteResturantImage,
+  deleteRestaurantImage,
+  getCuisines,
   getRestaurantById,
   getRestaurants,
   updateRestaurant,
@@ -11,7 +12,7 @@ import {
 import {
   createRestaurantSchema,
   updateRestaurantSchema,
-} from "../validators/resturantValidation.js";
+} from "../validators/restaurantValidation.js";
 import upload from "../middlewares/upload.js";
 import validate from "../middlewares/validate.js";
 
@@ -23,6 +24,7 @@ const uploadRestaurantFiles = upload.fields([
 ]);
 
 router.get("/",getRestaurants);
+router.get("/cuisines", getCuisines);
 router.get("/:id",getRestaurantById);
 
 router.post("/", protect, allowRoles("admin"), uploadRestaurantFiles, validate(createRestaurantSchema), createRestaurant);
@@ -36,7 +38,7 @@ router.put(
   updateRestaurant
 );
 
-router.delete("/:id/images", protect, allowRoles("admin"), deleteResturantImage);
+router.delete("/:id/images", protect, allowRoles("admin"), deleteRestaurantImage);
 
 router.delete("/:id", protect, allowRoles("admin"), deleteRestaurant);
 

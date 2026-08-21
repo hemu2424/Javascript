@@ -4,18 +4,26 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js"
-import restaurantRoutes from "./routes/restuarantRoute.js"
+import restaurantRoutes from "./routes/restaurantRoutes.js"
 import menuItemRoutes from "./routes/menuItemRoutes.js"
+import orderRoutes from "./routes/orderRoutes.js"
 import path from "path";
 import { fileURLToPath } from "url"
+import adminRoutes from "./routes/adminRoutes.js"
 
 dotenv.config();
 connectDB();
 
 const app = express();
-
+const allowedOrigins = process.env.CLIENT_URLS.split(",");
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 }));
 
@@ -33,8 +41,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/restaurants", restaurantRoutes);
-app.use("/api/resturants", restaurantRoutes);
 app.use("/api/menu", menuItemRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

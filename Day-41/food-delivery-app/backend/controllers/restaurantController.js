@@ -3,9 +3,38 @@ import MenuItem from "../models/MenuItems.js";
 import path from "path";
 import fs from "fs";
 
+
+
+async function getCuisines(req, res, next) {
+  try {
+
+    const cuisines = await Restaurant.distinct("cuisine", {
+      isActive: true,
+      cuisine: { $nin: [null, ""] },
+    });
+
+    res.json(cuisines.sort());
+  } catch (error) {
+    next(error);
+  }
+}
 async function getRestaurants(req, res, next) {
   try {
-    const restaurants = await Restaurant.find({ isActive: true }).sort({ createdAt: -1 });
+    const { search, cuisine } = req.query;
+
+   
+    const filter = { isActive: true };
+
+    if (search) {
+ 
+      filter.name = { $regex: search, $options: "i" };
+    }
+
+    if (cuisine) {
+      filter.cuisine = { $regex: cuisine, $options: "i" };
+    }
+
+    const restaurants = await Restaurant.find(filter).sort({ createdAt: -1 });
     res.json(restaurants);
   } catch (error) {
     next(error);
@@ -85,7 +114,7 @@ async function updateRestaurant(req, res, next) {
   }
 }
 
-async function deleteResturantImage(req, res, next) {
+async function deleteRestaurantImage(req, res, next) {
   try {
     const { id } = req.params;
     const { imagePath } = req.body;
@@ -150,6 +179,6 @@ export {
   getRestaurantById,
   createRestaurant,
   updateRestaurant,
-  deleteResturantImage,
-  deleteRestaurant,
+  deleteRestaurantImage,
+  deleteRestaurant,getCuisines
 };
