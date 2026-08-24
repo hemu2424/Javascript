@@ -74,6 +74,11 @@ export default function LoginPage(){
             <span className="text-sm font-medium">{isSubmitting ? "Logging in..." : "Login"}</span>
           </button>
         </form>
+        <div className="flex justify-end">
+  <Link href="/forgot-password" className="text-sm text-orange-600 hover:underline">
+    Forgot password?
+  </Link>
+</div>
 
         <p className="text-sm text-gray-500 mt-6 text-center">
           Don&apos;t have an account?{' '}

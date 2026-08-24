@@ -14,6 +14,9 @@ async function  protect(req,res,next){
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await Users.findById(decoded.id).select("-password");
+        if (!user.isEmailVerified) {
+  return res.status(403).json({ message: "Please verify your email to continue" });
+}
 
 
         if(!user){
@@ -21,6 +24,7 @@ async function  protect(req,res,next){
                 message:"user not exist"
             })
         }
+        
         if(user.isBlocked){
             return res.status(401).json({
               message:"user is blocked"  

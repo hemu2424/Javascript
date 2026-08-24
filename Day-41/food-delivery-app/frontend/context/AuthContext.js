@@ -34,38 +34,65 @@ export function AuthProvider({children}){
     },[])
 
 
-async function login(email,password){
+  async function login(email, password) {
+    try {
+      const response = await api.post("/auth/login", { email, password });
+      setUser(response.data.user);
+      redirectByRole(response.data.user.role);
+      return response.data.user;
+    } catch (error) {
+    
+      if (error.response?.data?.requiresVerification) {
+        router.push(`/verify-email?email=${encodeURIComponent(error.response.data.email)}`);
+      }
+      throw error; 
+    }
+  }
 
-    const response = await api.post("/auth/login",{email,password})
-    const user = response.data.user ?? response.data;
-    setUser(user);
-    redirectedByRole(user.role);
-    return user;
-}
+    async function verifyEmail(email, otp) {
+    const response = await api.post("/auth/verify-email", { email, otp });
+    setUser(response.data.user);
+    redirectByRole(response.data.user.role);
+    return response.data.user;
+  }
 
-async function register(formData){
+  async function resendOtp(email) {
+    const response = await api.post("/auth/resend-otp", { email });
+    return response.data;
+  }
 
-    const response = await api.post("/auth/register",formData);
-    const user = response.data.user ?? response.data;
-    setUser(user);
-    redirectedByRole(user.role);
-    return user
-}
+
+  async function register(formData) {
+    const response = await api.post("/auth/register", formData);
+  
+    router.push(`/verify-email?email=${encodeURIComponent(response.data.email)}`);
+    return response.data;
+  }
   async function logout() {
     await api.post("/auth/logout"); 
     setUser(null);
     router.push("/login");
   }
 
-function redirectedByRole(role){
-    if(role === "admin"){ router.push("/admin/dashboard"); }
-    else if(role === "delivery") { router.push("/delivery/dashboard"); }
-    else { router.push("/user/dashboard"); }
+function redirectByRole(role){
+  if(role === "admin"){ router.push("/admin/dashboard"); }
+  else if(role === "delivery") { router.push("/delivery/dashboard"); }
+  else { router.push("/user/dashboard"); }
 
 }
 
+async function forgotPassword(email) {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+}
+
+async function resetPassword(email, otp, newPassword) {
+  const response = await api.post("/auth/reset-password", { email, otp, newPassword });
+  return response.data;
+}
+
 return (
-    <AuthContext.Provider value = {{user,loading,register,login,logout}}>
+    <AuthContext.Provider value = {{user,loading,register,login,logout,verifyEmail,resendOtp,forgotPassword,resetPassword}}>
         {children}
     </AuthContext.Provider>
 )

@@ -10,11 +10,13 @@ import orderRoutes from "./routes/orderRoutes.js"
 import path from "path";
 import { fileURLToPath } from "url"
 import adminRoutes from "./routes/adminRoutes.js"
+import registerEmailListeners from "./events/emailEvents.js"
 
 dotenv.config();
 connectDB();
 
 const app = express();
+registerEmailListeners();
 const allowedOrigins = process.env.CLIENT_URLS.split(",");
 app.use(cors({
   origin: function (origin, callback) {
