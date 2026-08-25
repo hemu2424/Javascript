@@ -11,21 +11,19 @@ import path from "path";
 import { fileURLToPath } from "url"
 import adminRoutes from "./routes/adminRoutes.js"
 import registerEmailListeners from "./events/emailEvents.js"
+import { createServer } from "http"
+import {Server} from "socket.io"
+import { initSocket } from "./socket/socket.js"
 
 dotenv.config();
 connectDB();
 
 const app = express();
 registerEmailListeners();
-const allowedOrigins = process.env.CLIENT_URLS.split(",");
+const allowedOrigins = [process.env.CLIENT_URL, "http://localhost:3000", "http://localhost:3002"];
+
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
 }));
 
@@ -47,8 +45,19 @@ app.use("/api/menu", menuItemRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
-const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`server is started ${PORT}`);
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
+});
+
+initSocket(io); 
+
+const PORT = process.env.PORT || 5000;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

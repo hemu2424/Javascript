@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
 import MenuItems from "../models/MenuItems.js";
+import { getIO } from "../socket/socket.js";
 
 
 async function createOrder(req, res, next) {
@@ -124,6 +125,19 @@ async function updateOrderStatus(req, res, next) {
     order.status = status;
     await order.save();
 
+
+    const io = getIO();
+    io.to(`user:${order.user.toString()}`).emit("order:statusUpdated", {
+      orderId: order._id,
+      status: order.status,
+    });
+
+  
+    io.to("admins").emit("order:statusUpdated", {
+      orderId: order._id,
+      status: order.status,
+    });
+
     res.json(order);
   } catch (error) {
     next(error);
@@ -164,24 +178,14 @@ async function acceptOrder(req, res, next) {
       return res.status(403).json({ message: "Your account is pending admin approval" });
     }
 
-   
     const order = await Order.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        deliveryPartner: null,
-        status: "preparing",
-      },
-      {
-        deliveryPartner: req.user._id,
-        status: "out_for_delivery",
-      },
-      { new: true } 
+      { _id: req.params.id, deliveryPartner: null, status: "preparing" },
+      { deliveryPartner: req.user._id, status: "out_for_delivery" },
+      { new: true }
     );
 
     if (!order) {
-
       const existingOrder = await Order.findById(req.params.id);
-
       if (!existingOrder) {
         return res.status(404).json({ message: "Order not found" });
       }
@@ -190,6 +194,14 @@ async function acceptOrder(req, res, next) {
       }
       return res.status(400).json({ message: "Order is not ready for pickup yet" });
     }
+    const io = getIO();
+    io.to(`user:${order.user.toString()}`).emit("order:statusUpdated", {
+      orderId: order._id,
+      status: order.status,
+    });
+
+  
+    io.emit("order:claimed", { orderId: order._id });
 
     res.json(order);
   } catch (error) {

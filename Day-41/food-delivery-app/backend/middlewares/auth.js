@@ -32,7 +32,7 @@ async function  protect(req,res,next){
         }
 
         req.user = user
-        console.log("menu -admin")
+      
 
         next()
     }

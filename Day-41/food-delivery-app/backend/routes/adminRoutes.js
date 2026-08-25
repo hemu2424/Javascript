@@ -12,6 +12,7 @@ const router = express.Router();
 
 
 router.use(protect, allowRoles("admin"));
+
 router.get("/stats", getDashboardStats);
 router.get("/customers", getAllCustomers);
 router.get("/delivery-partners", getAllDeliveryPartners);
