@@ -17,9 +17,10 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState(user?.address || "");
   const [error, setError] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const {showToast} = useToast()
+
 
   async function handlePlaceOrder() {
-    const {showToast} = useToast()
     if (!address.trim()) {
       setError("Please enter a delivery address.");
       return;
@@ -45,7 +46,7 @@ export default function CheckoutPage() {
       router.push(`/user/orders/${order._id}`); 
     } catch (err) {
       setError(err.response?.data?.message || "Could not place order. Please try again.");
-       showToast(message, "error");
+      //  showToast(message, "error");
     } finally {
       setIsPlacingOrder(false);
     }

@@ -1,16 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import OrderStatusBadge from "@/components/user/OrderStatusBadge";
+import { useOrderStatusListener } from "@/hooks/useOrderStatusListener";
 import api from "@/lib/api";
+import { useToast } from "@/context/ToastContext";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+const { showToast } = useToast();
+
 
   useEffect(() => {
     async function fetchOrder() {
@@ -25,6 +29,19 @@ export default function OrderDetailPage() {
     }
     fetchOrder();
   }, [id]);
+
+const handleStatusUpdate = useCallback(
+  (update) => {
+    if (update.orderId === id) {
+      setOrder((prevOrder) => (prevOrder ? { ...prevOrder, status: update.status } : prevOrder));
+      showToast(`Order status updated: ${update.status.replace(/_/g, " ")}`);
+    }
+  },
+  [id, showToast]
+);
+
+  useOrderStatusListener(handleStatusUpdate);
+
 
   return (
     <ProtectedRoute allowedRoles={["user"]}>

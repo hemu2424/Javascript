@@ -8,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { AdminProvider } from "@/context/AdminContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { SocketProvider } from "@/context/SocketContext";
 
 
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
       <body>
         <ToastProvider>
         <AuthProvider>
+          <SocketProvider>
           <CartProvider>
             <OrderProvider>
           <RestaurantProvider>
@@ -43,6 +45,7 @@ export default function RootLayout({ children }) {
           </RestaurantProvider>
           </OrderProvider>
           </CartProvider>
+          </SocketProvider>
         </AuthProvider>
         </ToastProvider>
       </body>

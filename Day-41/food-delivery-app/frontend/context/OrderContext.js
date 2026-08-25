@@ -20,6 +20,10 @@ export function OrderProvider({ children }) {
 const [adminOrdersLoading, setAdminOrdersLoading] = useState(false);
 const [adminOrdersError, setAdminOrdersError] = useState("");
 
+function removeAvailableOrderLocally(orderId) {
+  setAvailableOrders((prev) => prev.filter((order) => order._id !== orderId));
+}
+
 const fetchAllOrders = useCallback(async () => {
   setAdminOrdersLoading(true);
   try {
@@ -95,7 +99,7 @@ async function advanceOrderStatus(orderId, newStatus) {
         myOrders, loading, error, fetchMyOrders, placeOrder,
         availableOrders, myDeliveries, deliveryLoading, deliveryError,
         fetchDeliveryData, acceptOrder, markDelivered,
-        allOrders, adminOrdersLoading, adminOrdersError, fetchAllOrders, advanceOrderStatus
+        allOrders, adminOrdersLoading, adminOrdersError, fetchAllOrders, advanceOrderStatus, removeAvailableOrderLocally
       }}
     >
       {children}

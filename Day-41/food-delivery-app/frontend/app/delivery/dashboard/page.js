@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import OrderStatusBadge from "@/components/user/OrderStatusBadge";
 import { useOrders } from "@/context/OrderContext";
 import { useAuth } from "@/context/AuthContext";
+import { useOrderClaimedListener } from "@/hooks/useOrderClaimedListener";
 
 export default function DeliveryDashboardPage() {
   const { user } = useAuth();
   const {
     availableOrders, myDeliveries, deliveryLoading, deliveryError,
-    fetchDeliveryData, acceptOrder, markDelivered,
+    fetchDeliveryData, acceptOrder, markDelivered, removeAvailableOrderLocally,
   } = useOrders();
 
   useEffect(() => {
@@ -19,12 +20,21 @@ export default function DeliveryDashboardPage() {
     }
   }, [user, fetchDeliveryData]);
 
-  // Delivery partners must be approved by admin before they see any orders
+
+  const handleOrderClaimed = useCallback(
+    (update) => {
+      removeAvailableOrderLocally(update.orderId);
+    },
+    [removeAvailableOrderLocally]
+  );
+
+  useOrderClaimedListener(handleOrderClaimed);
+
   if (user && !user.isApproved) {
     return (
       <ProtectedRoute allowedRoles={["delivery"]}>
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-yellow-800 max-w-lg">
-          Your account is pending admin approval. You'll be able to accept deliveries once approved.
+          Your account is pending admin approval.
         </div>
       </ProtectedRoute>
     );
