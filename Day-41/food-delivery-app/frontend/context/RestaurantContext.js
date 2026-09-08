@@ -17,14 +17,18 @@ const [detailLoading, setDetailLoading] = useState(false);
 const [detailError, setDetailError] = useState("");
 // ---
 
-
+const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
+const [nearbySearchRadiusKm, setNearbySearchRadiusKm] = useState(null);
+const [nearbyLoading, setNearbyLoading] = useState(false);
+const [nearbyError, setNearbyError] = useState("");
 
 const [cuisines, setCuisines] = useState([]);
 
 const fetchCuisines = useCallback(async () => {
   try {
     const response = await api.get("/restaurants/cuisines");
-    setCuisines(response.data);
+    const data = response.data;
+    setCuisines(Array.isArray(data) ? data : []);
   } catch (err) {
     console.error(err);
   }
@@ -33,12 +37,14 @@ const fetchCuisines = useCallback(async () => {
 const fetchRestaurants = useCallback(async (filters = {}) => {
   setLoading(true);
   try {
-   
+  
     const params = new URLSearchParams(filters).toString();
     const url = params ? `/restaurants?${params}` : "/restaurants";
 
     const response = await api.get(url);
-    setRestaurants(response.data);
+    const data = response.data;
+    const resolved = data?.restaurants ?? data ?? [];
+    setRestaurants(Array.isArray(resolved) ? resolved : []);
     setError("");
   } catch (err) {
     setError("Could not fetch restaurants");
@@ -53,7 +59,7 @@ const fetchRestaurantById = useCallback(async (id) => {
     try {
         const response = await api.get(`/restaurants/${id}`);
         setCurrentRestaurant(response.data.restaurant);
-        setMenuItems(response.data.menuItems);
+        setMenuItems(Array.isArray(response.data.menuItems) ? response.data.menuItems : []);
         setDetailError("");
     } catch (err) {
         console.log(err);
@@ -81,12 +87,27 @@ const deleteRestaurantImage = async(restaurantId, imagePath)=>{
     await fetchRestaurants()
 }
 
+
+const fetchNearbyRestaurants = useCallback(async (latitude, longitude) => {
+  setNearbyLoading(true);
+  try {
+    const response = await api.get(`/restaurants/nearby?lat=${latitude}&lng=${longitude}`);
+    setNearbyRestaurants(response.data.restaurants);
+    setNearbySearchRadiusKm(response.data.searchRadiusKm);
+    setNearbyError("");
+  } catch (err) {
+    setNearbyError("Could not load nearby restaurants.");
+  } finally {
+    setNearbyLoading(false);
+  }
+}, []);
+
 return(
 <RestaurantsContext.Provider
 value={{
     restaurants, loading, error, fetchRestaurants,
     createRestaurant, deleteRestaurant, deleteRestaurantImage,
-    currentRestaurant, menuItems, detailLoading, detailError, fetchRestaurantById,cuisines, fetchCuisines,updateRestaurant
+    currentRestaurant, menuItems, detailLoading, detailError, fetchRestaurantById,cuisines, fetchCuisines,updateRestaurant,nearbyRestaurants, nearbySearchRadiusKm, nearbyLoading, nearbyError, fetchNearbyRestaurants
 }}
 >
 {children}

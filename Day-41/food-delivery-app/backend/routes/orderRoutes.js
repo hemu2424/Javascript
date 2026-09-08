@@ -8,6 +8,7 @@ import {
   getAvailableOrders,
   getMyDeliveries,
   acceptOrder,
+  downloadInvoice,
 } from "../controllers/orderController.js";
 
 import { allowRoles, protect } from "../middlewares/auth.js";
@@ -32,5 +33,7 @@ router.put(
   updateOrderStatus
 );
 router.put("/:id/accept", protect, allowRoles("delivery"), acceptOrder);
+
+router.get("/:id/invoice", protect, downloadInvoice);
 
 export default router;

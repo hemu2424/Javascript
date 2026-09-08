@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import OrderStatusBadge from "@/components/user/OrderStatusBadge";
 import { useOrderStatusListener } from "@/hooks/useOrderStatusListener";
-import api from "@/lib/api";
+import api, { getInvoiceUrl } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
 
 export default function OrderDetailPage() {
@@ -70,6 +70,15 @@ const handleStatusUpdate = useCallback(
               <span>Total</span>
               <span>₹{order.totalAmount}</span>
             </div>
+            {order.status === "delivered" && (
+            <a
+  href={getInvoiceUrl(order._id)}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-block mt-4 text-sm border border-orange-600 text-orange-600 px-4 py-2 rounded-md hover:bg-orange-50"
+>
+  Download Invoice
+</a>)}
           </div>
 
           <p className="text-sm text-gray-500">

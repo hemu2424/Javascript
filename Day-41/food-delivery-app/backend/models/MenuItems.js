@@ -37,7 +37,7 @@ const menuItemSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+menuItemSchema.index({ restaurant: 1, isAvailable: 1 });
 const Menus =  mongoose.model("MenuItem", menuItemSchema);
 
 export default Menus;

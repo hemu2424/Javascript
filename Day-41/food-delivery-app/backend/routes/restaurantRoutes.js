@@ -4,7 +4,9 @@ import {
   createRestaurant,
   deleteRestaurant,
   deleteRestaurantImage,
+  geocodeAddressEndpoint,
   getCuisines,
+  getNearbyRestaurants,
   getRestaurantById,
   getRestaurants,
   updateRestaurant,
@@ -13,8 +15,8 @@ import {
   createRestaurantSchema,
   updateRestaurantSchema,
 } from "../validators/restaurantValidation.js";
-import upload from "../middlewares/upload.js";
 import validate from "../middlewares/validate.js";
+import upload from "../middlewares/upload.js";
 
 const router = express.Router();
 
@@ -25,6 +27,10 @@ const uploadRestaurantFiles = upload.fields([
 
 router.get("/",getRestaurants);
 router.get("/cuisines", getCuisines);
+router.get("/nearby", getNearbyRestaurants);
+
+router.get("/geocode", geocodeAddressEndpoint);
+
 router.get("/:id",getRestaurantById);
 
 router.post("/", protect, allowRoles("admin"), uploadRestaurantFiles, validate(createRestaurantSchema), createRestaurant);

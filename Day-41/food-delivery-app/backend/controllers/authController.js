@@ -232,13 +232,14 @@ async function forgotPassword(req, res, next) {
     if (!user) {
       return res.json({ message: "If an account with that email exists, a reset code has been sent." });
     }
-
+console.log("User found for password reset:", user.email);
     const otp = generateOtp();
     user.resetPasswordOtp = hashOtp(otp);
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
     eventEmitter.emit("user:passwordResetRequested", { email: user.email, name: user.name, otp });
+    console.log("Password reset requested for:", email, "OTP:", otp);
 
     res.json({ message: "If an account with that email exists, a reset code has been sent." });
   } catch (error) {

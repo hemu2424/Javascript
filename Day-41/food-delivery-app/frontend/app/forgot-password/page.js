@@ -19,6 +19,7 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleRequestCode(e) {
+    console.log("Requesting code onclick ")
     e.preventDefault();
     setError("");
     setIsSubmitting(true);

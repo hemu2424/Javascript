@@ -1,9 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import RestaurantForm from "@/components/admin/RestaurantForm";
 import RestaurantList from "@/components/admin/RestaurantList";
+
+
+const RestaurantForm = dynamic(() => import("@/components/admin/RestaurantForm"), {
+  loading: () => (
+    <div className="bg-white border rounded-xl p-6 mb-6 max-w-2xl mx-auto text-gray-400 text-sm">
+      Loading form...
+    </div>
+  ),
+});
 
 export default function AdminRestaurantsPage() {
   const [showForm, setShowForm] = useState(false);

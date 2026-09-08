@@ -1,6 +1,8 @@
 import Order from "../models/Order.js";
 import MenuItems from "../models/MenuItems.js";
 import { getIO } from "../socket/socket.js";
+import generateInvoicePdf from "../utils/generateInvoice.js";
+import { getPaginationParams } from "../utils/paginate.js";
 
 
 async function createOrder(req, res, next) {
@@ -48,11 +50,21 @@ async function createOrder(req, res, next) {
 
 async function getMyOrders(req, res, next) {
   try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate("restaurant", "name images")
-      .sort({ createdAt: -1 });
+    const { page, limit, skip } = getPaginationParams(req);
 
-    res.json(orders);
+    const [orders, totalOrders] = await Promise.all([
+      Order.find({ user: req.user._id })
+        .populate("restaurant", "name images")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments({ user: req.user._id }),
+    ]);
+
+    res.json({
+      orders,
+      pagination: { page, limit, totalOrders, totalPages: Math.ceil(totalOrders / limit) },
+    });
   } catch (error) {
     next(error);
   }
@@ -65,6 +77,7 @@ async function getOrderById(req, res, next) {
       .populate("restaurant", "name address")
       .populate("user", "name phone")
       .populate("deliveryPartner", "name phone");
+      console.log(order)
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -88,13 +101,28 @@ async function getOrderById(req, res, next) {
 
 async function getAllOrders(req, res, next) {
   try {
-    const orders = await Order.find()
-      .populate("restaurant", "name")
-      .populate("user", "name email")
-      .populate("deliveryPartner", "name")
-      .sort({ createdAt: -1 });
+    const { page, limit, skip } = getPaginationParams(req);
 
-    res.json(orders);
+    const [orders, totalOrders] = await Promise.all([
+      Order.find()
+        .populate("restaurant", "name")
+        .populate("user", "name email")
+        .populate("deliveryPartner", "name")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments(),
+    ]);
+
+    res.json({
+      orders,
+      pagination: {
+        page,
+        limit,
+        totalOrders,
+        totalPages: Math.ceil(totalOrders / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -171,6 +199,38 @@ async function getMyDeliveries(req, res, next) {
     next(error);
   }
 }
+async function downloadInvoice(req, res, next) {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("restaurant", "name address")
+      .populate("user", "name phone");
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+   
+    const isOwner = order.user._id.toString() === req.user._id.toString();
+    const isAssignedPartner =
+      order.deliveryPartner && order.deliveryPartner.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAssignedPartner && !isAdmin) {
+      return res.status(403).json({ message: "You do not have access to this invoice" });
+    }
+
+    // These headers tell the browser: "this is a file to download, not a page to render"
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=invoice-${order._id.toString().slice(-6)}.pdf`
+    );
+
+    generateInvoicePdf(order, res);
+  } catch (error) {
+    next(error);
+  }
+}
 
 async function acceptOrder(req, res, next) {
   try {
@@ -218,4 +278,5 @@ export {
   getAvailableOrders,
   getMyDeliveries,
   acceptOrder,
+  downloadInvoice
 };

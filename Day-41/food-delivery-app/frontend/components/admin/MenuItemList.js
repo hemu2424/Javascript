@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useMenuItems } from "@/context/MenuItemContext";
 import { fileUrl } from "@/lib/fileUrl";
 import MenuItemForm from "./MenuItemForm";
 
 export default function MenuItemList({ menuItems, onChanged }) {
   const { deleteMenuItem, deleteMenuItemImage } = useMenuItems();
-  const [editingItemId, setEditingItemId] = useState(null); 
+  const [editingItemId, setEditingItemId] = useState(null);
 
   async function handleDeleteItem(id) {
     if (!confirm("Delete this menu item?")) return;
@@ -58,11 +59,17 @@ export default function MenuItemList({ menuItems, onChanged }) {
           {item.images?.length > 0 && (
             <div className="flex gap-2 flex-wrap mt-3">
               {item.images.map((img) => (
-                <div key={img} className="relative">
-                  <img src={fileUrl(img)} alt={item.name} className="w-16 h-16 object-cover rounded-md border" />
+                <div key={img} className="relative w-16 h-16">
+                  <Image
+                    src={img}
+                    alt={item.name}
+                    fill
+                    sizes="64px"
+                    className="object-cover rounded-md border"
+                  />
                   <button
                     onClick={() => handleDeleteImage(item._id, img)}
-                    className="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs"
+                    className="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs z-10"
                   >
                     ×
                   </button>

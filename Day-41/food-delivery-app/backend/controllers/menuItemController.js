@@ -1,7 +1,6 @@
-import fs from "fs";
-import path from "path";
 import Restaurant from "../models/Restaurant.js";
 import MenuItem from "../models/MenuItems.js";
+import cloudinary from "../config/cloudinary.js";
 
 async function createMenuItem(req, res, next) {
   try {
@@ -13,7 +12,7 @@ async function createMenuItem(req, res, next) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    const imagePaths = (req.files?.images || []).map((file) => `/uploads/${file.filename}`);
+    const imagePaths = (req.files?.images || []).map((file) => file.path);
 
     const menuItem = await MenuItem.create({
       restaurant,
@@ -45,8 +44,7 @@ async function updateMenuItem(req, res, next) {
     });
 
     if (req.files?.images?.length > 0) {
-      const newImagePaths = req.files.images.map((file) => `/uploads/${file.filename}`);
-      menuItem.images.push(...newImagePaths);
+      menuItem.images.push(...req.files.images.map((file) => file.path));
     }
 
     await menuItem.save();
@@ -69,7 +67,7 @@ async function deleteMenuItemImage(req, res, next) {
     menuItem.images = menuItem.images.filter((img) => img !== imagePath);
     await menuItem.save();
 
-    deleteFileFromDisk(imagePath);
+    await deleteFileFromCloud(imagePath);
 
     res.json(menuItem);
   } catch (error) {
@@ -84,7 +82,7 @@ async function deleteMenuItem(req, res, next) {
       return res.status(404).json({ message: "Menu item not found" });
     }
 
-    menuItem.images.forEach(deleteFileFromDisk);
+    await Promise.all(menuItem.images.map((image) => deleteFileFromCloud(image)));
     await menuItem.deleteOne();
 
     res.json({ message: "Menu item deleted successfully" });
@@ -93,16 +91,25 @@ async function deleteMenuItem(req, res, next) {
   }
 }
 
-function deleteFileFromDisk(urlPath) {
-  if (!urlPath) return;
+function getCloudinaryPublicId(url) {
+  if (!url?.includes("res.cloudinary.com")) return null;
 
-  const filename = path.basename(urlPath);
-  const fullPath = path.join("uploads", filename);
-  fs.unlink(fullPath, (err) => {
-    if (err && err.code !== "ENOENT") {
-      console.error(`Failed to delete file ${fullPath}:`, err.message);
-    }
-  });
+  const { pathname } = new URL(url);
+  const uploadPath = pathname.split("/upload/")[1];
+  if (!uploadPath) return null;
+
+  return uploadPath.replace(/^v\d+\//, "").replace(/\.[^/.]+$/, "");
+}
+
+async function deleteFileFromCloud(url) {
+  const publicId = getCloudinaryPublicId(url);
+  if (!publicId) return;
+
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+  } catch (error) {
+    console.error("Failed to delete file from Cloudinary:", error.message);
+  }
 }
 
 export { deleteMenuItem, deleteMenuItemImage, updateMenuItem, createMenuItem };

@@ -37,9 +37,9 @@ const fetchAllOrders = useCallback(async () => {
   }
 }, []);
 
-async function advanceOrderStatus(orderId, newStatus) {
+async function advanceOrderStatus(orderId, newStatus, currentPage = 1) {
   await api.put(`/orders/${orderId}/status`, { status: newStatus });
-  await fetchAllOrders();
+  await fetchAllOrders(currentPage);
 }
 //   ---
 

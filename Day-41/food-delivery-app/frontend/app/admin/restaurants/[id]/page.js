@@ -30,7 +30,7 @@ export default function AdminRestaurantDetailPage() {
             <p className="text-gray-500">{currentRestaurant.cuisine}</p>
             {currentRestaurant.video && (
               <video
-                src={fileUrl(currentRestaurant.video)}
+                src={currentRestaurant.video}
                 controls
                 className="w-full max-w-xs mt-3 rounded-md"
               />

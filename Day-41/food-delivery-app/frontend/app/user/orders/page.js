@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import OrderStatusBadge from "@/components/user/OrderStatusBadge";
+import Pagination from "@/components/shared/Pagination";
 import { useOrders } from "@/context/OrderContext";
 
 export default function MyOrdersPage() {
-  const { myOrders, loading, error, fetchMyOrders } = useOrders();
+  const { myOrders, myOrdersPagination, loading, error, fetchMyOrders } = useOrders();
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchMyOrders();
-  }, [fetchMyOrders]);
+    fetchMyOrders(currentPage);
+  }, [currentPage, fetchMyOrders]);
 
   return (
     <ProtectedRoute allowedRoles={["user"]}>
@@ -25,11 +27,7 @@ export default function MyOrdersPage() {
 
       <div className="space-y-3 max-w-lg">
         {myOrders.map((order) => (
-          <Link
-            key={order._id}
-            href={`/user/orders/${order._id}`}
-            className="block bg-white border rounded-lg p-4 hover:shadow-sm"
-          >
+          <Link key={order._id} href={`/user/orders/${order._id}`} className="block bg-white border rounded-lg p-4 hover:shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{order.restaurant?.name}</p>
@@ -42,6 +40,8 @@ export default function MyOrdersPage() {
           </Link>
         ))}
       </div>
+
+      <Pagination pagination={myOrdersPagination} onPageChange={setCurrentPage} />
     </ProtectedRoute>
   );
 }

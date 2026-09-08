@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useRestaurants } from "@/context/RestaurantContext";
 
-export default function RestaurantSearchBar() {
+
+export default function RestaurantSearchBar({ onSearchChange }) {
   const { fetchRestaurants, cuisines, fetchCuisines } = useRestaurants();
   const router = useRouter();
   const pathname = usePathname();
@@ -19,22 +20,19 @@ export default function RestaurantSearchBar() {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (cuisine) params.set("cuisine", cuisine);
 
       const queryString = params.toString();
       const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-
-
       router.replace(newUrl, { scroll: false });
 
-      fetchRestaurants({ search, cuisine });
-    }, 400);    
+      onSearchChange({ search, cuisine }); 
+    }, 400);
 
     return () => clearTimeout(timeoutId);
-  }, [search, cuisine, pathname, router, fetchRestaurants]);
+  }, [search, cuisine, pathname, router, onSearchChange]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -45,7 +43,6 @@ export default function RestaurantSearchBar() {
         onChange={(e) => setSearch(e.target.value)}
         className="flex-1 border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-200"
       />
-
       <select
         value={cuisine}
         onChange={(e) => setCuisine(e.target.value)}

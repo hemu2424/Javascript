@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRestaurants } from "@/context/RestaurantContext";
 import ImageGallery from "@/components/shared/ImageGallery";
 import { fileUrl } from "@/lib/fileUrl";
-import MenuItemForm from "./MenuItemForm";
-import RestaurantForm from "./RestaurantForm";
+
+const MenuItemForm = dynamic(() => import("./MenuItemForm"), {
+  loading: () => <p className="text-gray-400 text-sm">Loading...</p>,
+});
+const RestaurantForm = dynamic(() => import("./RestaurantForm"), {
+  loading: () => <p className="text-gray-400 text-sm">Loading form...</p>,
+});
 
 export default function RestaurantListItem({ restaurant }) {
   const { deleteRestaurant, deleteRestaurantImage } = useRestaurants();
@@ -31,22 +37,13 @@ export default function RestaurantListItem({ restaurant }) {
       </Link>
 
       <div className="flex gap-2 mt-2 flex-wrap">
-        <button
-          onClick={() => setShowEditForm(!showEditForm)}
-          className="text-sm border px-3 py-1.5 rounded-md"
-        >
+        <button onClick={() => setShowEditForm(!showEditForm)} className="text-sm border px-3 py-1.5 rounded-md">
           {showEditForm ? "Close" : "Edit"}
         </button>
-        <button
-          onClick={() => setShowMenuForm(!showMenuForm)}
-          className="text-sm border px-3 py-1.5 rounded-md"
-        >
+        <button onClick={() => setShowMenuForm(!showMenuForm)} className="text-sm border px-3 py-1.5 rounded-md">
           {showMenuForm ? "Close" : "+ Menu Item"}
         </button>
-        <button
-          onClick={handleDelete}
-          className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md"
-        >
+        <button onClick={handleDelete} className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md">
           Delete
         </button>
       </div>
@@ -54,17 +51,12 @@ export default function RestaurantListItem({ restaurant }) {
       <ImageGallery images={restaurant.images} onDelete={handleDeleteImage} />
 
       {restaurant.video && (
-        <video src={fileUrl(restaurant.video)} controls className="w-full max-w-xs mt-3 rounded-md" />
+        <video src={restaurant.video} controls className="w-full max-w-xs mt-3 rounded-md" />
       )}
 
       {showEditForm && (
         <div className="mt-4 pt-4 border-t">
-          {/* key forces a fresh form instance if you ever switch which restaurant you're editing */}
-          <RestaurantForm
-            key={restaurant._id}
-            restaurant={restaurant}
-            onSuccess={() => setShowEditForm(false)}
-          />
+          <RestaurantForm key={restaurant._id} restaurant={restaurant} onSuccess={() => setShowEditForm(false)} />
         </div>
       )}
 

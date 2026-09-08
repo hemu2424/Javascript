@@ -13,11 +13,7 @@ import validate from "../middlewares/validate.js";
 const router = express.Router();
 
 
-const uploadMenuItemImages = upload.fields([
-  { name: "images", maxCount: 5 },
-  { name: "video", maxCount: 1 }
-]);
-console.log("router menu")
+const uploadMenuItemImages = upload.fields([{ name: "images", maxCount: 5 }]);
 router.post(
   "/",
   protect,

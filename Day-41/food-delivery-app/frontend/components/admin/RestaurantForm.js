@@ -99,9 +99,11 @@ export default function RestaurantForm({ restaurant, onSuccess }) {
 
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
-        <input
-          name="address"
-          placeholder="Street, City, ZIP"
+          <input
+            name="address"
+            required
+            minLength={5}
+            placeholder="Street, City, ZIP"
           value={formData.address}
           onChange={handleTextChange}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-200"

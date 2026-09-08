@@ -83,10 +83,14 @@ function redirectByRole(role){
 
 async function forgotPassword(email) {
   const response = await api.post("/auth/forgot-password", { email });
+  console.log("Requesting password reset for:", email);
+
+  
   return response.data;
 }
 
 async function resetPassword(email, otp, newPassword) {
+  console.log("Resetting password for:", email, otp, newPassword);
   const response = await api.post("/auth/reset-password", { email, otp, newPassword });
   return response.data;
 }

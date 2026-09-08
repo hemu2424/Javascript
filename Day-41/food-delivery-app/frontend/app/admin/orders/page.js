@@ -57,7 +57,7 @@ export default function AdminOrdersPage() {
 
               {nextStatus && (
                 <button
-                  onClick={() => advanceOrderStatus(order._id, nextStatus)}
+                  onClick={() => advanceOrderStatus(order._id, nextStatus, currentPage)}
                   className="bg-orange-600 text-white text-sm px-3 py-2 rounded-md hover:bg-orange-700 mt-2"
                 >
                   Mark as {nextStatus.replace(/_/g, " ")}
